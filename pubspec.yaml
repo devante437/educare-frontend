@@ -1,0 +1,19 @@
+name: educare_frontend
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.7.2
+
+dependencies:
+  flutter:
+    sdk: flutter
+  url_launcher: ^6.2.5
+  http: ^1.4.0
+
+flutter:
+  uses-material-design: true
+
+
