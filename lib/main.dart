@@ -67,7 +67,8 @@ class _EducareHomePageState extends State<EducareHomePage> {
     }
 
     final url = Uri.parse(
-        'https://educare-ai-tool.onrender.com/requirements?from_country=$fromCountry&to_country=$toCountry');
+      'https://educare-ai-tool.onrender.com/api/requirements?from_country=$fromCountry&to_country=$toCountry',
+    );
 
     try {
       final response = await http.get(url);
@@ -104,8 +105,7 @@ class _EducareHomePageState extends State<EducareHomePage> {
   @override
   void initState() {
     super.initState();
-    // Set default value for fromCountry to United States since it's the only option
-    fromCountry = fromCountries[0];
+    fromCountry = fromCountries[0]; // Default to United States
   }
 
   @override
@@ -145,7 +145,7 @@ class _EducareHomePageState extends State<EducareHomePage> {
             ),
             const SizedBox(height: 30),
 
-            // From Country dropdown (only United States)
+            // From Country dropdown
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 labelText: 'From Country',
@@ -205,4 +205,3 @@ class _EducareHomePageState extends State<EducareHomePage> {
     );
   }
 }
-
