@@ -18,6 +18,7 @@ class EducareApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       home: const EducareHomePage(),
+      debugShowCheckedModeBanner: false,
     );
   }
 }
@@ -30,8 +31,9 @@ class EducareHomePage extends StatefulWidget {
 }
 
 class _EducareHomePageState extends State<EducareHomePage> {
-  String? fromCountry;
+  String? fromCountry = 'United States';
   String? toCountry;
+  bool isLoading = false;
 
   final List<String> fromCountries = [
     'United States',
@@ -48,23 +50,17 @@ class _EducareHomePageState extends State<EducareHomePage> {
   String resultText = '';
 
   Future<void> _submit() async {
+    if (fromCountry == null || toCountry == null) {
+      setState(() {
+        resultText = 'Please select both From and To countries.';
+      });
+      return;
+    }
+
     setState(() {
-      resultText = 'Fetching data...';
+      isLoading = true;
+      resultText = '';
     });
-
-    if (fromCountry == null) {
-      setState(() {
-        resultText = 'Please select a departure country.';
-      });
-      return;
-    }
-
-    if (toCountry == null) {
-      setState(() {
-        resultText = 'Please select a destination country.';
-      });
-      return;
-    }
 
     final url = Uri.parse(
       'https://educare-ai-tool.onrender.com/api/requirements?from_country=$fromCountry&to_country=$toCountry',
@@ -72,25 +68,22 @@ class _EducareHomePageState extends State<EducareHomePage> {
 
     try {
       final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['status'] == 'success') {
-          setState(() {
-            resultText = 'Requirement:\n${data['requirement']}';
-          });
+      final data = jsonDecode(response.body);
+
+      setState(() {
+        if (response.statusCode == 200 && data['status'] == 'success') {
+          resultText = 'Requirement:\n${data['requirement']}';
         } else {
-          setState(() {
-            resultText = 'No requirement found for this selection.';
-          });
+          resultText = 'No requirement found for this selection.';
         }
-      } else {
-        setState(() {
-          resultText = 'Server error. Please try again later.';
-        });
-      }
+      });
     } catch (e) {
       setState(() {
         resultText = 'Error: ${e.toString()}';
+      });
+    } finally {
+      setState(() {
+        isLoading = false;
       });
     }
   }
@@ -103,28 +96,19 @@ class _EducareHomePageState extends State<EducareHomePage> {
   }
 
   @override
-  void initState() {
-    super.initState();
-    fromCountry = fromCountries[0]; // Default to United States
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Educare AI Tool'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Educare',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -145,7 +129,6 @@ class _EducareHomePageState extends State<EducareHomePage> {
             ),
             const SizedBox(height: 30),
 
-            // From Country dropdown
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 labelText: 'From Country',
@@ -162,10 +145,8 @@ class _EducareHomePageState extends State<EducareHomePage> {
                 });
               },
             ),
-
             const SizedBox(height: 20),
 
-            // To Country dropdown
             DropdownButtonFormField<String>(
               decoration: const InputDecoration(
                 labelText: 'To Country',
@@ -182,26 +163,30 @@ class _EducareHomePageState extends State<EducareHomePage> {
                 });
               },
             ),
-
             const SizedBox(height: 30),
+
             Center(
               child: ElevatedButton(
-                onPressed: _submit,
+                onPressed: isLoading ? null : _submit,
                 child: const Text('Submit'),
               ),
             ),
-
             const SizedBox(height: 30),
-            Center(
-              child: Text(
-                resultText,
-                style: const TextStyle(fontSize: 16),
-                textAlign: TextAlign.center,
+
+            if (isLoading)
+              const Center(child: CircularProgressIndicator())
+            else
+              Center(
+                child: Text(
+                  resultText,
+                  style: const TextStyle(fontSize: 16),
+                  textAlign: TextAlign.center,
+                ),
               ),
-            ),
           ],
         ),
       ),
     );
   }
 }
+
